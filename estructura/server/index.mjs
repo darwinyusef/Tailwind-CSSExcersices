@@ -1,13 +1,26 @@
-import express from 'express';
+import { Server } from 'socket.io';
+import { createServer } from 'http';
 
-const app = express();
-
-app.use(express.static('public'));
-
-app.get('/api/data', (req, res) => {
-    res.send('Hola a todos');
+const httpServer = createServer();
+const io = new Server(httpServer, {
+    cors: {
+        origin: '*',
+    },
 });
 
-app.listen(3000, () => {
-    console.log('Servidor Node escuchando en el puerto 3000');
+io.on('connection', (socket) => {
+    console.log('Cliente conectado', socket.id);
+
+    socket.on('mensaje', (data) => {
+        console.log('Mensaje recibido:', data);
+        io.emit('mensaje', data); // Emite el mensaje a todos los clientes conectados
+    });
+
+    socket.on('disconnect', () => {
+        console.log('Cliente desconectado', socket.id);
+    });
+});
+
+httpServer.listen(3000, () => {
+    console.log('Servidor escuchando en el puerto 3000');
 });
